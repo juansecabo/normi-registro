@@ -25,7 +25,7 @@ export function PasoIdentificacionPadre({ initialValue = "", onContinue, onBack 
     setError("");
 
     try {
-      const res = await fetch(`/api/validar-padre-codigo?id=${encodeURIComponent(id.trim())}`);
+      const res = await fetch(`/api/validar-padre-id?id=${encodeURIComponent(id.trim())}`);
       const data = await res.json();
 
       if (data.ya_registrado) {

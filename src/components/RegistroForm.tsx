@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ProgressBar } from "./ProgressBar";
 import { PasoSeleccionPerfil } from "./PasoSeleccionPerfil";
-import { PasoCodigoEstudiante } from "./PasoCodigoEstudiante";
+import { PasoIdEstudiante } from "./PasoIdEstudiante";
 import { PasoConfirmarIdentidad } from "./PasoConfirmarIdentidad";
 import { PasoNombrePadre } from "./PasoNombrePadre";
 import { PasoIdentificacionPadre } from "./PasoIdentificacionPadre";
@@ -188,7 +188,7 @@ export function RegistroForm({ contactId }: { contactId: string }) {
       return (
         <>
           <ProgressBar currentStep={2} totalSteps={5} />
-          <PasoCodigoEstudiante
+          <PasoIdEstudiante
             perfil="Estudiante"
             onValidado={(id, est) => {
               setPendingEstudiante({ id, ...est });
@@ -351,7 +351,7 @@ export function RegistroForm({ contactId }: { contactId: string }) {
         return (
           <>
             <ProgressBar currentStep={step} totalSteps={getTotalSteps()} />
-            <PasoCodigoEstudiante
+            <PasoIdEstudiante
               label={`Documento del estudiante${ordinal}`}
               subtitle="Ingresa el número de documento con el que se matriculó tu niño/a"
               perfil="Padre de familia"

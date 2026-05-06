@@ -21,7 +21,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function PasoCodigoEstudiante({ label, subtitle, perfil = "Estudiante", idsYaUsados = [], onValidado, onBack }: Props) {
+export function PasoIdEstudiante({ label, subtitle, perfil = "Estudiante", idsYaUsados = [], onValidado, onBack }: Props) {
   const [id, setId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export function PasoCodigoEstudiante({ label, subtitle, perfil = "Estudiante", i
     setError("");
 
     try {
-      const res = await fetch(`/api/validar-codigo?id=${encodeURIComponent(id.trim())}&perfil=${encodeURIComponent(perfil)}`);
+      const res = await fetch(`/api/validar-id?id=${encodeURIComponent(id.trim())}&perfil=${encodeURIComponent(perfil)}`);
       const data = await res.json();
 
       if (!data.existe) {
