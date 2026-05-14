@@ -17,11 +17,12 @@ interface Props {
   subtitle?: string;
   perfil?: "Estudiante" | "Padre de familia";
   idsYaUsados?: string[];
+  hideBack?: boolean;
   onValidado: (id: string, estudiante: EstudianteData) => void;
   onBack: () => void;
 }
 
-export function PasoIdEstudiante({ label, subtitle, perfil = "Estudiante", idsYaUsados = [], onValidado, onBack }: Props) {
+export function PasoIdEstudiante({ label, subtitle, perfil = "Estudiante", idsYaUsados = [], hideBack, onValidado, onBack }: Props) {
   const [id, setId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -90,10 +91,12 @@ export function PasoIdEstudiante({ label, subtitle, perfil = "Estudiante", idsYa
           error={error}
         />
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onBack} className="flex-1">
-            Atrás
-          </Button>
-          <Button onClick={handleValidar} disabled={loading} className="flex-1">
+          {!hideBack && (
+            <Button variant="outline" onClick={onBack} className="flex-1">
+              Atrás
+            </Button>
+          )}
+          <Button onClick={handleValidar} disabled={loading} className={hideBack ? "w-full" : "flex-1"}>
             {loading ? "Validando..." : "Validar"}
           </Button>
         </div>
