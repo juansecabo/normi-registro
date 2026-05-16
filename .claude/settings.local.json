@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(ssh root@168.231.75.16 \"cd /root/normi-registro && git pull origin master && cd /root && docker compose up -d --build normi-registro\")",
+      "Bash(ssh root@168.231.75.16 \"grep -A 20 ''normi\\\\|registro'' /root/docker-compose.yml\")",
+      "Bash(npx vercel:*)",
+      "Bash(gh repo view:*)"
+    ]
+  }
+}

@@ -7,8 +7,8 @@ export function PasoYaRegistrado() {
   return (
     <div className="animate-fade-in text-center py-4">
       <Image
-        src="/normy_1.webp"
-        alt="Normy"
+        src="/normi_1.webp"
+        alt="Normi"
         width={100}
         height={100}
         className="mx-auto mb-4 rounded-full"

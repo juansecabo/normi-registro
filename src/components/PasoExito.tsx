@@ -48,15 +48,15 @@ export function PasoExito({ perfil, padreNombre, padreNumEstudiantes }: Props) {
 
       <p className="text-muted-foreground mb-8 max-w-sm mx-auto text-sm">
         También puedes acceder a la plataforma en{" "}
-        <a href="https://notasnormy.com" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
-          notasnormy.com
+        <a href="https://notasnormi.com" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
+          notasnormi.com
         </a>{" "}
         con tu identificación y contraseña.
       </p>
 
       <Image
-        src="/normy_1.webp"
-        alt="Normy"
+        src="/normi_1.webp"
+        alt="Normi"
         width={80}
         height={80}
         className="mx-auto mb-6 rounded-full"

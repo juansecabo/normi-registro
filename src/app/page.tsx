@@ -19,7 +19,7 @@ function RegistroContent() {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Link inválido</h2>
         <p className="text-muted-foreground">
-          Este enlace de registro no es válido. Escríbele a Normy por WhatsApp para recibir un enlace nuevo.
+          Este enlace de registro no es válido. Escríbele a Normi por WhatsApp para recibir un enlace nuevo.
         </p>
       </div>
     );
@@ -31,10 +31,10 @@ function RegistroContent() {
 export default function Home() {
   return (
     <main className="min-h-screen bg-accent flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Normy - only on desktop, to the right */}
+      {/* Normi - only on desktop, to the right */}
       <div className="hidden lg:block fixed bottom-0 right-12 pointer-events-none z-0">
         <Image
-          src="/normy_2.webp"
+          src="/normi_2.webp"
           alt=""
           width={480}
           height={480}
@@ -54,7 +54,7 @@ export default function Home() {
             className="mx-auto mb-3"
           />
           <h1 className="text-2xl font-bold text-foreground">
-            Registro de Normy
+            Registro de Normi
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Escuela Normal Superior de Corozal

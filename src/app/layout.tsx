@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Registro de Normy",
-  description: "Registra tu perfil para chatear con Normy, el asistente virtual de la Escuela Normal Superior de Corozal.",
+  title: "Registro de Normi",
+  description: "Registra tu perfil para chatear con Normi, el asistente virtual de la Escuela Normal Superior de Corozal.",
   icons: {
     icon: "/escudo.webp",
     apple: "/escudo.webp",
