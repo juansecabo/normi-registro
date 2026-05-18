@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
   for (const idEst of studentIds) {
     const { data: est } = await supabase
       .from("Estudiantes")
-      .select("id_estudiantil")
-      .eq("id_estudiantil", idEst)
+      .select("id")
+      .eq("id", idEst)
       .single();
     if (!est) {
       return NextResponse.json({ error: `Documento ${idEst} no encontrado` }, { status: 400 });
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
     // Verificar que no esté usado como estudiante con teléfono
     const { data: estCon } = await supabase
       .from("Estudiantes")
-      .select("id_estudiantil")
-      .eq("id_estudiantil", String(campos.padre_id))
+      .select("id")
+      .eq("id", String(campos.padre_id))
       .not("numero_de_telefono", "is", null)
       .limit(1);
     if (estCon && estCon.length > 0) {
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
   if (perfil === "Estudiante" && campos.estudiante_id) {
     const { data: estDup } = await supabase
       .from("Estudiantes")
-      .select("id_estudiantil")
-      .eq("id_estudiantil", String(campos.estudiante_id))
+      .select("id")
+      .eq("id", String(campos.estudiante_id))
       .not("numero_de_telefono", "is", null)
       .limit(1);
     if (estDup && estDup.length > 0) {
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   const { data: refEst } = await supabase
     .from("Estudiantes")
     .select("colegio_id, nombres, apellidos")
-    .eq("id_estudiantil", refStudentId)
+    .eq("id", refStudentId)
     .single();
   if (!refEst) {
     return NextResponse.json({ error: "No se pudo determinar el colegio del estudiante" }, { status: 400 });
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     const { error: estError } = await supabase
       .from("Estudiantes")
       .update({ numero_de_telefono })
-      .eq("id_estudiantil", String(campos.estudiante_id))
+      .eq("id", String(campos.estudiante_id))
       .eq("colegio_id", colegio_id);
     if (estError) {
       return NextResponse.json({ error: `Error actualizando estudiante: ${estError.message}` }, { status: 500 });

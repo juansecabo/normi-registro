@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
 
   const { data: estudiante, error } = await supabase
     .from("Estudiantes")
-    .select("id_estudiantil, nombres, apellidos, nivel, grado, salon, numero_de_telefono")
-    .eq("id_estudiantil", id)
+    .select("id, nombres, apellidos, nivel, grado, salon, numero_de_telefono")
+    .eq("id", id)
     .single();
 
   if (error || !estudiante) {

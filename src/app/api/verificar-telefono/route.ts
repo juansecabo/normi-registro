@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 2. ¿Es acudiente de algún estudiante? Buscar en Estudiantes.acudienteN_telefono
-  const selectCols = "id_estudiantil, nombres, apellidos, nivel, grado, salon, acudiente1_nombres, acudiente1_apellidos, acudiente1_telefono, acudiente2_nombres, acudiente2_apellidos, acudiente2_telefono, acudiente3_nombres, acudiente3_apellidos, acudiente3_telefono";
+  const selectCols = "id, nombres, apellidos, nivel, grado, salon, acudiente1_nombres, acudiente1_apellidos, acudiente1_telefono, acudiente2_nombres, acudiente2_apellidos, acudiente2_telefono, acudiente3_nombres, acudiente3_apellidos, acudiente3_telefono";
   const [r1, r2, r3] = await Promise.all([
     supabase.from("Estudiantes").select(selectCols).eq("acudiente1_telefono", phoneLocal),
     supabase.from("Estudiantes").select(selectCols).eq("acudiente2_telefono", phoneLocal),
@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
   ]);
 
   const porEstudiante = new Map<number, { row: any; slot: 1 | 2 | 3 }>();
-  for (const row of r1.data || []) if (!porEstudiante.has(row.id_estudiantil)) porEstudiante.set(row.id_estudiantil, { row, slot: 1 });
-  for (const row of r2.data || []) if (!porEstudiante.has(row.id_estudiantil)) porEstudiante.set(row.id_estudiantil, { row, slot: 2 });
-  for (const row of r3.data || []) if (!porEstudiante.has(row.id_estudiantil)) porEstudiante.set(row.id_estudiantil, { row, slot: 3 });
+  for (const row of r1.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 1 });
+  for (const row of r2.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 2 });
+  for (const row of r3.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 3 });
 
   const matches = Array.from(porEstudiante.values());
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       "Décimo": 13, "Undécimo": 14,
     };
     const hijos = estudiantes.map((e: any) => ({
-      id: String(e.id_estudiantil),
+      id: String(e.id),
       nombre: e.nombres,
       apellidos: e.apellidos,
       nivel: e.nivel,

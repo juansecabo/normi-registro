@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
   // 2. ¿El id es de un estudiante con teléfono registrado? (modelo nuevo)
   const { data: estudianteConTel } = await supabase
     .from("Estudiantes")
-    .select("id_estudiantil")
-    .eq("id_estudiantil", id)
+    .select("id")
+    .eq("id", id)
     .not("numero_de_telefono", "is", null)
     .limit(1);
 

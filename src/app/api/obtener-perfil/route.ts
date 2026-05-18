@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     // Verificar si es estudiante o acudiente
     const [estRes, acudRes] = await Promise.all([
       supabase.from("Estudiantes")
-        .select("id_estudiantil, nombres, apellidos, nivel, grado, salon")
-        .eq("id_estudiantil", parseInt(usuario.id))
+        .select("id, nombres, apellidos, nivel, grado, salon")
+        .eq("id", parseInt(usuario.id))
         .maybeSingle(),
       supabase.from("Acudientes")
         .select("id, numero_de_acudidos, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         datos_actuales: {
           perfil: "Estudiante",
           numero_de_telefono: id,
-          estudiante_id: estRes.data.id_estudiantil,
+          estudiante_id: estRes.data.id,
           estudiante_nombre: estRes.data.nombres,
           estudiante_apellidos: estRes.data.apellidos,
           estudiante_nivel: estRes.data.nivel,
@@ -67,12 +67,12 @@ export async function GET(request: NextRequest) {
       if (hijoIds.length > 0) {
         const { data: estsData } = await supabase
           .from("Estudiantes")
-          .select("id_estudiantil, nombres, apellidos, nivel, grado, salon")
-          .in("id_estudiantil", hijoIds);
+          .select("id, nombres, apellidos, nivel, grado, salon")
+          .in("id", hijoIds);
         for (let i = 0; i < hijoIds.length; i++) {
-          const e = (estsData || []).find((x: any) => x.id_estudiantil === hijoIds[i]);
+          const e = (estsData || []).find((x: any) => x.id === hijoIds[i]);
           if (!e) continue;
-          datos[`padre_estudiante${i + 1}_id`] = e.id_estudiantil;
+          datos[`padre_estudiante${i + 1}_id`] = e.id;
           datos[`padre_estudiante${i + 1}_nombre`] = e.nombres;
           datos[`padre_estudiante${i + 1}_apellidos`] = e.apellidos;
           datos[`padre_estudiante${i + 1}_nivel`] = e.nivel;
