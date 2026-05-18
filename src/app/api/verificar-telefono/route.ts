@@ -1,40 +1,53 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Verifica si un teléfono ya está registrado en el sistema.
+ * Fase 10: usa Usuarios (global), Estudiantes y Acudientes en lugar de Perfiles_Generales.
+ */
 export async function GET(request: NextRequest) {
   const phone = request.nextUrl.searchParams.get("phone");
   if (!phone) {
     return NextResponse.json({ error: "Falta el parámetro phone" }, { status: 400 });
   }
 
-  // Strip country code (57) if present
   const phoneLocal = phone.startsWith("57") ? phone.slice(2) : phone;
 
-  // 1. Check if already registered in Perfiles_Generales
-  const { data: perfil } = await supabase
+  // 1. Check Usuarios (modelo nuevo, global): si el teléfono ya está y tiene contraseña, está registrado.
+  const { data: usuario } = await supabase
+    .from("Usuarios")
+    .select("id, contrasena, numero_de_telefono")
+    .eq("numero_de_telefono", phone)
+    .maybeSingle();
+
+  if (usuario && usuario.contrasena) {
+    return NextResponse.json({ yaRegistrado: true });
+  }
+
+  // También con phoneLocal por si el teléfono se guardó sin código país
+  if (!usuario) {
+    const { data: usuarioLocal } = await supabase
+      .from("Usuarios")
+      .select("id, contrasena")
+      .eq("numero_de_telefono", phoneLocal)
+      .maybeSingle();
+    if (usuarioLocal && usuarioLocal.contrasena) {
+      return NextResponse.json({ yaRegistrado: true });
+    }
+  }
+
+  // 2. Fallback legacy: Perfiles_Generales (mientras dure la transición)
+  const { data: perfilLegacy } = await supabase
     .from("Perfiles_Generales")
     .select("perfil, contrasena, estudiante_id, padre_id")
     .eq("numero_de_telefono", phone)
     .maybeSingle();
 
-  if (perfil && perfil.contrasena) {
+  if (perfilLegacy && perfilLegacy.contrasena) {
     return NextResponse.json({ yaRegistrado: true });
   }
 
-  // Also check with local phone (without 57)
-  if (!perfil) {
-    const { data: perfilLocal } = await supabase
-      .from("Perfiles_Generales")
-      .select("perfil, contrasena")
-      .eq("numero_de_telefono", phoneLocal)
-      .maybeSingle();
-
-    if (perfilLocal && perfilLocal.contrasena) {
-      return NextResponse.json({ yaRegistrado: true });
-    }
-  }
-
-  // 2. Check if phone exists in any of Estudiantes.telefono_acudiente{,2,3}
+  // 3. ¿Es acudiente de algún estudiante? Buscar en Estudiantes.telefono_acudiente
   const selectCols = "id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante, nombre_acudiente, telefono_acudiente, nombre_acudiente2, telefono_acudiente2, nombre_acudiente3, telefono_acudiente3";
   const [r1, r2, r3] = await Promise.all([
     supabase.from("Estudiantes").select(selectCols).contains("telefono_acudiente", [phoneLocal]),
@@ -50,7 +63,6 @@ export async function GET(request: NextRequest) {
   const matches = Array.from(porEstudiante.values());
 
   if (matches.length > 0) {
-    // It's a parent - get acudiente name from the slot that matched in the first student
     const first = matches[0];
     const nombreAcudiente =
       (first.slot === 1 ? first.row.nombre_acudiente :
@@ -85,7 +97,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // 3. Not a parent - assume student
+  // 4. No es acudiente, asume estudiante
   return NextResponse.json({
     yaRegistrado: false,
     esPadre: false,

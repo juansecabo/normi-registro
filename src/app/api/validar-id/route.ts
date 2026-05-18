@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * Valida que un id estudiantil exista en Estudiantes y no esté ya en uso por otro perfil.
+ * Fase 10: usa Estudiantes + Acudientes + Usuarios; fallback PG legacy.
+ */
 export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id");
   const perfil = request.nextUrl.searchParams.get("perfil") || "Estudiante";
@@ -9,10 +13,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Falta el parámetro id" }, { status: 400 });
   }
 
-  // Look up the student in the Estudiantes table
   const { data: estudiante, error } = await supabase
     .from("Estudiantes")
-    .select("id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante")
+    .select("id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante, numero_de_telefono")
     .eq("id_estudiantil", id)
     .single();
 
@@ -24,19 +27,38 @@ export async function GET(request: NextRequest) {
   let mensaje = "";
 
   if (perfil === "Estudiante") {
-    // Check the id isn't already taken by another student
-    const { data: existing } = await supabase
-      .from("Perfiles_Generales")
-      .select("numero_de_telefono")
-      .eq("estudiante_id", id)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
+    // 1. ¿El estudiante ya tiene un teléfono registrado en Estudiantes? (modelo nuevo)
+    if (estudiante.numero_de_telefono) {
       ya_registrado = true;
       mensaje = "Ya alguien se registró con esta identificación. Comunícate con la institución.";
     }
 
-    // Check the id isn't already used as a parent identification
+    // 2. ¿El id está usado como acudiente_id? (modelo nuevo)
+    if (!ya_registrado) {
+      const { data: existingAcud } = await supabase
+        .from("Acudientes")
+        .select("acudiente_id")
+        .eq("acudiente_id", id)
+        .limit(1);
+      if (existingAcud && existingAcud.length > 0) {
+        ya_registrado = true;
+        mensaje = "Ya alguien se registró con esta identificación como padre de familia. Comunícate con la institución.";
+      }
+    }
+
+    // 3. Fallback legacy PG: ¿el id está como estudiante registrado allá?
+    if (!ya_registrado) {
+      const { data: existing } = await supabase
+        .from("Perfiles_Generales")
+        .select("numero_de_telefono")
+        .eq("estudiante_id", id)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        ya_registrado = true;
+        mensaje = "Ya alguien se registró con esta identificación. Comunícate con la institución.";
+      }
+    }
+
     if (!ya_registrado) {
       const { data: existingPadre } = await supabase
         .from("Perfiles_Generales")
@@ -44,7 +66,6 @@ export async function GET(request: NextRequest) {
         .eq("padre_id", id)
         .not("padre_id", "is", null)
         .limit(1);
-
       if (existingPadre && existingPadre.length > 0) {
         ya_registrado = true;
         mensaje = "Ya alguien se registró con esta identificación como padre de familia. Comunícate con la institución.";
