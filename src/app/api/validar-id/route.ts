@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { data: estudiante, error } = await supabase
     .from("Estudiantes")
-    .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante, numero_de_telefono")
+    .select("id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante, numero_de_telefono")
     .eq("id_estudiantil", id)
     .single();
 
@@ -46,6 +46,31 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 3. Fallback legacy PG: ¿el id está como estudiante registrado allá?
+    if (!ya_registrado) {
+      const { data: existing } = await supabase
+        .from("Perfiles_Generales")
+        .select("numero_de_telefono")
+        .eq("estudiante_id", id)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        ya_registrado = true;
+        mensaje = "Ya alguien se registró con esta identificación. Comunícate con la institución.";
+      }
+    }
+
+    if (!ya_registrado) {
+      const { data: existingPadre } = await supabase
+        .from("Perfiles_Generales")
+        .select("numero_de_telefono")
+        .eq("padre_id", id)
+        .not("padre_id", "is", null)
+        .limit(1);
+      if (existingPadre && existingPadre.length > 0) {
+        ya_registrado = true;
+        mensaje = "Ya alguien se registró con esta identificación como padre de familia. Comunícate con la institución.";
+      }
+    }
   }
 
   return NextResponse.json({
@@ -53,8 +78,8 @@ export async function GET(request: NextRequest) {
     ya_registrado,
     mensaje,
     estudiante: {
-      nombre: estudiante.nombres,
-      apellidos: estudiante.apellidos,
+      nombre: estudiante.nombre_estudiante,
+      apellidos: estudiante.apellidos_estudiante,
       nivel: estudiante.nivel_estudiante,
       grado: estudiante.grado_estudiante,
       salon: estudiante.salon_estudiante,

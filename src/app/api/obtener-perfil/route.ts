@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Verificar si es estudiante o acudiente
     const [estRes, acudRes] = await Promise.all([
       supabase.from("Estudiantes")
-        .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante")
+        .select("id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante")
         .eq("id_estudiantil", parseInt(usuario.id))
         .maybeSingle(),
       supabase.from("Acudientes")
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
           perfil: "Estudiante",
           numero_de_telefono: id,
           estudiante_id: estRes.data.id_estudiantil,
-          estudiante_nombre: estRes.data.nombres,
-          estudiante_apellidos: estRes.data.apellidos,
+          estudiante_nombre: estRes.data.nombre_estudiante,
+          estudiante_apellidos: estRes.data.apellidos_estudiante,
           estudiante_nivel: estRes.data.nivel_estudiante,
           estudiante_grado: estRes.data.grado_estudiante,
           estudiante_salon: estRes.data.salon_estudiante,
@@ -67,14 +67,14 @@ export async function GET(request: NextRequest) {
       if (hijoIds.length > 0) {
         const { data: estsData } = await supabase
           .from("Estudiantes")
-          .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante")
+          .select("id_estudiantil, nombre_estudiante, apellidos_estudiante, nivel_estudiante, grado_estudiante, salon_estudiante")
           .in("id_estudiantil", hijoIds);
         for (let i = 0; i < hijoIds.length; i++) {
           const e = (estsData || []).find((x: any) => x.id_estudiantil === hijoIds[i]);
           if (!e) continue;
           datos[`padre_estudiante${i + 1}_id`] = e.id_estudiantil;
-          datos[`padre_estudiante${i + 1}_nombre`] = e.nombres;
-          datos[`padre_estudiante${i + 1}_apellidos`] = e.apellidos;
+          datos[`padre_estudiante${i + 1}_nombre`] = e.nombre_estudiante;
+          datos[`padre_estudiante${i + 1}_apellidos`] = e.apellidos_estudiante;
           datos[`padre_estudiante${i + 1}_nivel`] = e.nivel_estudiante;
           datos[`padre_estudiante${i + 1}_grado`] = e.grado_estudiante;
           datos[`padre_estudiante${i + 1}_salon`] = e.salon_estudiante;
@@ -97,5 +97,32 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ existe: false, ya_registrado: false });
+  // 2. Fallback legacy: Perfiles_Generales
+  const { data, error } = await supabase
+    .from("Perfiles_Generales")
+    .select("*")
+    .eq("numero_de_telefono", id)
+    .single();
+
+  if (error || !data) {
+    return NextResponse.json({ existe: false, ya_registrado: false });
+  }
+
+  let ya_registrado = false;
+  if (data.perfil === "Estudiante") {
+    ya_registrado = !!data.estudiante_id && !!data.contrasena;
+  } else if (data.perfil === "Padre de familia") {
+    const numMap: Record<string, number> = { "1 (uno)": 1, "2 (dos)": 2, "3 (tres)": 3, "4 (cuatro)": 4 };
+    const required = numMap[data.padre_numero_de_estudiantes] || 0;
+    if (required > 0 && data.padre_nombre && data.contrasena && data.padre_id) {
+      const ids = [data.padre_estudiante1_id, data.padre_estudiante2_id, data.padre_estudiante3_id, data.padre_estudiante4_id];
+      ya_registrado = ids.slice(0, required).every((c: string | null) => !!c);
+    }
+  }
+
+  return NextResponse.json({
+    existe: true,
+    ya_registrado,
+    datos_actuales: data,
+  });
 }
