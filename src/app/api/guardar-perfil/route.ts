@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
     // Verificar contra Acudientes (modelo nuevo)
     const { data: dupAcud } = await supabase
       .from("Acudientes")
-      .select("acudiente_id")
-      .eq("acudiente_id", String(campos.padre_id))
+      .select("id")
+      .eq("id", String(campos.padre_id))
       .limit(1);
     if (dupAcud && dupAcud.length > 0) {
       return NextResponse.json({
@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
     }
     const { data: acudDup } = await supabase
       .from("Acudientes")
-      .select("acudiente_id")
-      .eq("acudiente_id", String(campos.estudiante_id))
+      .select("id")
+      .eq("id", String(campos.estudiante_id))
       .limit(1);
     if (acudDup && acudDup.length > 0) {
       return NextResponse.json({
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
     const numMap: Record<string, number> = { "1 (uno)": 1, "2 (dos)": 2, "3 (tres)": 3, "4 (cuatro)": 4 };
     const numH = numMap[campos.padre_numero_de_estudiantes] || 0;
     const acudPayload: any = {
-      acudiente_id: userId,
+      id: userId,
       colegio_id,
       numero_de_acudidos: campos.padre_numero_de_estudiantes,
     };
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     }
     const { error: acudError } = await supabase
       .from("Acudientes")
-      .upsert(acudPayload, { onConflict: "acudiente_id,colegio_id" });
+      .upsert(acudPayload, { onConflict: "id,colegio_id" });
     if (acudError) {
       return NextResponse.json({ error: `Error guardando acudiente: ${acudError.message}` }, { status: 500 });
     }

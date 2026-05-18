@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
         .eq("id_estudiantil", parseInt(usuario.id))
         .maybeSingle(),
       supabase.from("Acudientes")
-        .select("acudiente_id, numero_de_acudidos, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
-        .eq("acudiente_id", usuario.id)
+        .select("id, numero_de_acudidos, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
+        .eq("id", usuario.id)
         .maybeSingle(),
     ]);
 

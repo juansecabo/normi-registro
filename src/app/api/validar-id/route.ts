@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
       mensaje = "Ya alguien se registró con esta identificación. Comunícate con la institución.";
     }
 
-    // 2. ¿El id está usado como acudiente_id? (modelo nuevo)
+    // 2. ¿El id está usado como id? (modelo nuevo)
     if (!ya_registrado) {
       const { data: existingAcud } = await supabase
         .from("Acudientes")
-        .select("acudiente_id")
-        .eq("acudiente_id", id)
+        .select("id")
+        .eq("id", id)
         .limit(1);
       if (existingAcud && existingAcud.length > 0) {
         ya_registrado = true;
