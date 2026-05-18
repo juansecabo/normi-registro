@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
   const refStudentId = studentIds[0];
   const { data: refEst } = await supabase
     .from("Estudiantes")
-    .select("colegio_id, nombre_estudiante, apellidos_estudiante")
+    .select("colegio_id, nombres, apellidos")
     .eq("id_estudiantil", refStudentId)
     .single();
   if (!refEst) {
@@ -129,10 +129,10 @@ export async function POST(request: NextRequest) {
 
   // 3. Escribir en Usuarios (identidad global)
   const usuarioNombres = perfil === "Estudiante"
-    ? refEst.nombre_estudiante
+    ? refEst.nombres
     : (campos.padre_nombre || "").split(" ").slice(0, -2).join(" ") || campos.padre_nombre;
   const usuarioApellidos = perfil === "Estudiante"
-    ? refEst.apellidos_estudiante
+    ? refEst.apellidos
     : (campos.padre_nombre || "").split(" ").slice(-2).join(" ");
 
   const usuarioPayload: any = {
