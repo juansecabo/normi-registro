@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { data: estudiante, error } = await supabase
     .from("Estudiantes")
-    .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante, numero_de_telefono")
+    .select("id_estudiantil, nombres, apellidos, nivel, grado, salon, numero_de_telefono")
     .eq("id_estudiantil", id)
     .single();
 
@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
     estudiante: {
       nombre: estudiante.nombres,
       apellidos: estudiante.apellidos,
-      nivel: estudiante.nivel_estudiante,
-      grado: estudiante.grado_estudiante,
-      salon: estudiante.salon_estudiante,
+      nivel: estudiante.nivel,
+      grado: estudiante.grado,
+      salon: estudiante.salon,
     },
   });
 }

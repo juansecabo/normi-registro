@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 2. ¿Es acudiente de algún estudiante? Buscar en Estudiantes.acudienteN_telefono
-  const selectCols = "id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante, acudiente1_nombres, acudiente1_apellidos, acudiente1_telefono, acudiente2_nombres, acudiente2_apellidos, acudiente2_telefono, acudiente3_nombres, acudiente3_apellidos, acudiente3_telefono";
+  const selectCols = "id_estudiantil, nombres, apellidos, nivel, grado, salon, acudiente1_nombres, acudiente1_apellidos, acudiente1_telefono, acudiente2_nombres, acudiente2_apellidos, acudiente2_telefono, acudiente3_nombres, acudiente3_apellidos, acudiente3_telefono";
   const [r1, r2, r3] = await Promise.all([
     supabase.from("Estudiantes").select(selectCols).eq("acudiente1_telefono", phoneLocal),
     supabase.from("Estudiantes").select(selectCols).eq("acudiente2_telefono", phoneLocal),
@@ -70,9 +70,9 @@ export async function GET(request: NextRequest) {
       id: String(e.id_estudiantil),
       nombre: e.nombres,
       apellidos: e.apellidos,
-      nivel: e.nivel_estudiante,
-      grado: e.grado_estudiante,
-      salon: e.salon_estudiante,
+      nivel: e.nivel,
+      grado: e.grado,
+      salon: e.salon,
     })).sort((a: any, b: any) => {
       const ga = gradoOrden[a.grado] ?? 99;
       const gb = gradoOrden[b.grado] ?? 99;

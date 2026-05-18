@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Verificar si es estudiante o acudiente
     const [estRes, acudRes] = await Promise.all([
       supabase.from("Estudiantes")
-        .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante")
+        .select("id_estudiantil, nombres, apellidos, nivel, grado, salon")
         .eq("id_estudiantil", parseInt(usuario.id))
         .maybeSingle(),
       supabase.from("Acudientes")
@@ -43,9 +43,9 @@ export async function GET(request: NextRequest) {
           estudiante_id: estRes.data.id_estudiantil,
           estudiante_nombre: estRes.data.nombres,
           estudiante_apellidos: estRes.data.apellidos,
-          estudiante_nivel: estRes.data.nivel_estudiante,
-          estudiante_grado: estRes.data.grado_estudiante,
-          estudiante_salon: estRes.data.salon_estudiante,
+          estudiante_nivel: estRes.data.nivel,
+          estudiante_grado: estRes.data.grado,
+          estudiante_salon: estRes.data.salon,
           contrasena: usuario.contrasena,
         },
       });
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       if (hijoIds.length > 0) {
         const { data: estsData } = await supabase
           .from("Estudiantes")
-          .select("id_estudiantil, nombres, apellidos, nivel_estudiante, grado_estudiante, salon_estudiante")
+          .select("id_estudiantil, nombres, apellidos, nivel, grado, salon")
           .in("id_estudiantil", hijoIds);
         for (let i = 0; i < hijoIds.length; i++) {
           const e = (estsData || []).find((x: any) => x.id_estudiantil === hijoIds[i]);
@@ -75,9 +75,9 @@ export async function GET(request: NextRequest) {
           datos[`padre_estudiante${i + 1}_id`] = e.id_estudiantil;
           datos[`padre_estudiante${i + 1}_nombre`] = e.nombres;
           datos[`padre_estudiante${i + 1}_apellidos`] = e.apellidos;
-          datos[`padre_estudiante${i + 1}_nivel`] = e.nivel_estudiante;
-          datos[`padre_estudiante${i + 1}_grado`] = e.grado_estudiante;
-          datos[`padre_estudiante${i + 1}_salon`] = e.salon_estudiante;
+          datos[`padre_estudiante${i + 1}_nivel`] = e.nivel;
+          datos[`padre_estudiante${i + 1}_grado`] = e.grado;
+          datos[`padre_estudiante${i + 1}_salon`] = e.salon;
         }
       }
       const required = numHijos > 0 ? numHijos : 0;
