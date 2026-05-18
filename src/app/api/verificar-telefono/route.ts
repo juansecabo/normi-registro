@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Verifica si un teléfono ya está registrado en el sistema.
- * Fase 10: usa Usuarios (global), Estudiantes y Acudientes en lugar de Perfiles_Generales.
+ * Usa Usuarios (global), Estudiantes y Acudientes.
  */
 export async function GET(request: NextRequest) {
   const phone = request.nextUrl.searchParams.get("phone");

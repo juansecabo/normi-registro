@@ -3,9 +3,8 @@ import { supabase } from "@/lib/supabase";
 
 /**
  * Guarda el perfil de registro de un usuario nuevo.
- * Fase 10: escribe en Usuarios (identidad global) + Estudiantes (si es estudiante)
- * o Acudientes (si es acudiente). Mantiene dual-write a Perfiles_Generales por
- * compat (el trigger DB también sincroniza, pero hacemos explícito).
+ * Escribe en Usuarios (identidad global) + Estudiantes (si es estudiante)
+ * o Acudientes (si es acudiente).
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -179,40 +178,6 @@ export async function POST(request: NextRequest) {
     if (acudError) {
       return NextResponse.json({ error: `Error guardando acudiente: ${acudError.message}` }, { status: 500 });
     }
-  }
-
-  // 5. Dual-write a Perfiles_Generales por compat (trigger también lo cubre pero hacemos explícito)
-  const pgUpdateData: Record<string, string | number | null> = { perfil };
-  if (campos.contrasena) pgUpdateData.contrasena = campos.contrasena;
-  if (perfil === "Estudiante") {
-    pgUpdateData.estudiante_id = campos.estudiante_id;
-  } else if (perfil === "Padre de familia") {
-    pgUpdateData.padre_nombre = campos.padre_nombre;
-    pgUpdateData.padre_numero_de_estudiantes = campos.padre_numero_de_estudiantes;
-    if (campos.padre_id) pgUpdateData.padre_id = campos.padre_id;
-    const numMap: Record<string, number> = { "1 (uno)": 1, "2 (dos)": 2, "3 (tres)": 3, "4 (cuatro)": 4 };
-    const num = numMap[campos.padre_numero_de_estudiantes] || 0;
-    for (let i = 1; i <= num; i++) {
-      pgUpdateData[`padre_estudiante${i}_id`] = campos[`padre_estudiante${i}_id`];
-    }
-  }
-
-  // Si la fila ya existe en PG (por teléfono), update; si no, insert
-  const { data: existingPg } = await supabase
-    .from("Perfiles_Generales")
-    .select("numero_de_telefono")
-    .eq("numero_de_telefono", numero_de_telefono)
-    .single();
-
-  if (existingPg) {
-    await supabase
-      .from("Perfiles_Generales")
-      .update(pgUpdateData)
-      .eq("numero_de_telefono", numero_de_telefono);
-  } else {
-    await supabase
-      .from("Perfiles_Generales")
-      .insert({ numero_de_telefono, colegio_id, ...pgUpdateData });
   }
 
   return NextResponse.json({ ok: true });

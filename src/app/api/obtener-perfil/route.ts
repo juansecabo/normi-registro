@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 
 /**
  * Obtiene el perfil actual de un usuario por su teléfono.
- * Fase 10: lee de Usuarios + Estudiantes + Acudientes con fallback a Perfiles_Generales.
+ * Lee de Usuarios + Estudiantes + Acudientes.
  */
 export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id");
