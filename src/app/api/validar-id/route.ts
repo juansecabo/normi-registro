@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { data: estudiante, error } = await supabase
     .from("Estudiantes")
-    .select("id, nombres, apellidos, nivel, grado, salon, numero_de_telefono")
+    .select("id, nombres, apellidos, nivel, grado, salon")
     .eq("id", id)
     .single();
 
@@ -27,8 +27,14 @@ export async function GET(request: NextRequest) {
   let mensaje = "";
 
   if (perfil === "Estudiante") {
-    // 1. ¿El estudiante ya tiene un teléfono registrado en Estudiantes? (modelo nuevo)
-    if (estudiante.numero_de_telefono) {
+    // 1. ¿El estudiante ya tiene un teléfono registrado? (Fase 10.E.15: tel en Usuarios)
+    const { data: usrConTel } = await supabase
+      .from("Usuarios")
+      .select("id")
+      .eq("id", id)
+      .not("numero_de_telefono", "is", null)
+      .limit(1);
+    if (usrConTel && usrConTel.length > 0) {
       ya_registrado = true;
       mensaje = "Ya alguien se registró con esta identificación. Comunícate con la institución.";
     }

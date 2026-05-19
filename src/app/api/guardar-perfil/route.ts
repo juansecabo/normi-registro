@@ -73,23 +73,32 @@ export async function POST(request: NextRequest) {
         error: "Ya alguien se registró con esta identificación. Comunícate con la institución.",
       }, { status: 409 });
     }
-    // Verificar que no esté usado como estudiante con teléfono
-    const { data: estCon } = await supabase
+    // Verificar que no esté usado como estudiante con teléfono.
+    // Fase 10.E.15: "estudiante registrado" = existe en Estudiantes Y su fila Usuarios tiene teléfono.
+    const { data: estRow } = await supabase
       .from("Estudiantes")
       .select("id")
       .eq("id", String(campos.padre_id))
-      .not("numero_de_telefono", "is", null)
       .limit(1);
-    if (estCon && estCon.length > 0) {
-      return NextResponse.json({
-        error: "Ya alguien se registró con esta identificación como estudiante. Comunícate con la institución.",
-      }, { status: 409 });
+    if (estRow && estRow.length > 0) {
+      const { data: usrCon } = await supabase
+        .from("Usuarios")
+        .select("id")
+        .eq("id", String(campos.padre_id))
+        .not("numero_de_telefono", "is", null)
+        .limit(1);
+      if (usrCon && usrCon.length > 0) {
+        return NextResponse.json({
+          error: "Ya alguien se registró con esta identificación como estudiante. Comunícate con la institución.",
+        }, { status: 409 });
+      }
     }
   }
 
   if (perfil === "Estudiante" && campos.estudiante_id) {
+    // Fase 10.E.15: el teléfono vive en Usuarios. Duplicado = Usuarios con esa cédula tiene tel.
     const { data: estDup } = await supabase
-      .from("Estudiantes")
+      .from("Usuarios")
       .select("id")
       .eq("id", String(campos.estudiante_id))
       .not("numero_de_telefono", "is", null)
@@ -149,17 +158,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Error guardando usuario: ${usuarioError.message}` }, { status: 500 });
   }
 
-  // 4. Escribir en tabla operativa
+  // 4. Escribir en tabla operativa.
+  // Fase 10.E.15: el teléfono ya quedó en Usuarios (paso 3). Estudiantes ya no tiene esa columna.
   if (perfil === "Estudiante") {
-    // Update Estudiantes con su teléfono
-    const { error: estError } = await supabase
-      .from("Estudiantes")
-      .update({ numero_de_telefono })
-      .eq("id", String(campos.estudiante_id))
-      .eq("colegio_id", colegio_id);
-    if (estError) {
-      return NextResponse.json({ error: `Error actualizando estudiante: ${estError.message}` }, { status: 500 });
-    }
+    // No-op para estudiante: la membresía Estudiantes ya existe (validada arriba) y
+    // el teléfono se guarda en Usuarios.
   } else if (perfil === "Padre de familia") {
     // Insertar en Acudientes
     const numMap: Record<string, number> = { "1 (uno)": 1, "2 (dos)": 2, "3 (tres)": 3, "4 (cuatro)": 4 };

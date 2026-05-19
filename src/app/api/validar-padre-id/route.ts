@@ -26,19 +26,26 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // 2. ¿El id es de un estudiante con teléfono registrado? (modelo nuevo)
-  const { data: estudianteConTel } = await supabase
+  // 2. ¿El id es de un estudiante con teléfono registrado? (Fase 10.E.15: tel en Usuarios)
+  // Es estudiante registrado si existe en Estudiantes Y su fila Usuarios tiene teléfono.
+  const { data: estRow } = await supabase
     .from("Estudiantes")
     .select("id")
     .eq("id", id)
-    .not("numero_de_telefono", "is", null)
     .limit(1);
-
-  if (estudianteConTel && estudianteConTel.length > 0) {
-    return NextResponse.json({
-      ya_registrado: true,
-      mensaje: "Ya alguien se registró con esta identificación como estudiante. Comunícate con la institución.",
-    });
+  if (estRow && estRow.length > 0) {
+    const { data: usrConTel } = await supabase
+      .from("Usuarios")
+      .select("id")
+      .eq("id", id)
+      .not("numero_de_telefono", "is", null)
+      .limit(1);
+    if (usrConTel && usrConTel.length > 0) {
+      return NextResponse.json({
+        ya_registrado: true,
+        mensaje: "Ya alguien se registró con esta identificación como estudiante. Comunícate con la institución.",
+      });
+    }
   }
 
   return NextResponse.json({ ya_registrado: false });
