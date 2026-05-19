@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         .eq("id", parseInt(usuario.id))
         .maybeSingle(),
       supabase.from("Acudientes")
-        .select("id, numero_de_acudidos, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
+        .select("id, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
         .eq("id", usuario.id)
         .maybeSingle(),
     ]);
@@ -54,16 +54,17 @@ export async function GET(request: NextRequest) {
     if (acudRes.data) {
       // Es acudiente — armar formato compatible con el flujo de registro
       const a = acudRes.data;
-      const numHijos = ["1 (uno)", "2 (dos)", "3 (tres)", "4 (cuatro)"].indexOf(a.numero_de_acudidos || "") + 1;
+      const hijoIds = [a.acudido1_id, a.acudido2_id, a.acudido3_id, a.acudido4_id].filter(Boolean);
+      // Derivamos el conteo desde los slots, no leemos columna cache.
+      const NUM_LABELS = ["", "1 (uno)", "2 (dos)", "3 (tres)", "4 (cuatro)"];
       const datos: any = {
         perfil: "Padre de familia",
         numero_de_telefono: id,
         padre_id: usuario.id,
         padre_nombre: `${usuario.nombres || ""} ${usuario.apellidos || ""}`.trim(),
-        padre_numero_de_estudiantes: a.numero_de_acudidos,
+        padre_numero_de_estudiantes: NUM_LABELS[hijoIds.length] || null,
         contrasena: usuario.contrasena,
       };
-      const hijoIds = [a.acudido1_id, a.acudido2_id, a.acudido3_id, a.acudido4_id].filter(Boolean);
       if (hijoIds.length > 0) {
         const { data: estsData } = await supabase
           .from("Estudiantes")
@@ -80,8 +81,8 @@ export async function GET(request: NextRequest) {
           datos[`padre_estudiante${i + 1}_salon`] = e.salon;
         }
       }
-      const required = numHijos > 0 ? numHijos : 0;
-      const ya_registrado = required > 0 && !!usuario.contrasena && hijoIds.length >= required;
+      const required = hijoIds.length;
+      const ya_registrado = required > 0 && !!usuario.contrasena;
       return NextResponse.json({
         existe: true,
         ya_registrado,

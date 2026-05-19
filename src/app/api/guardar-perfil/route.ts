@@ -170,7 +170,6 @@ export async function POST(request: NextRequest) {
     const acudPayload: any = {
       id: userId,
       colegio_id,
-      numero_de_acudidos: campos.padre_numero_de_estudiantes,
     };
     for (let i = 1; i <= numH; i++) {
       acudPayload[`acudido${i}_id`] = campos[`padre_estudiante${i}_id`] ? Number(campos[`padre_estudiante${i}_id`]) : null;
