@@ -36,56 +36,62 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // 2. ¿Es acudiente de algún estudiante? Buscar en Estudiantes.acudienteN_telefono
-  const selectCols = "id, nombres, apellidos, nivel, grado, salon, acudiente1_nombres, acudiente1_apellidos, acudiente1_telefono, acudiente2_nombres, acudiente2_apellidos, acudiente2_telefono, acudiente3_nombres, acudiente3_apellidos, acudiente3_telefono";
-  const [r1, r2, r3] = await Promise.all([
-    supabase.from("Estudiantes").select(selectCols).eq("acudiente1_telefono", phoneLocal),
-    supabase.from("Estudiantes").select(selectCols).eq("acudiente2_telefono", phoneLocal),
-    supabase.from("Estudiantes").select(selectCols).eq("acudiente3_telefono", phoneLocal),
-  ]);
+  // 2. ¿Es acudiente de algún estudiante? Fase 10.E.17: ya no leemos
+  // Estudiantes.acudienteN_telefono (legacy). Buscamos el usuario por teléfono
+  // y, si tiene fila en Acudientes, listamos sus acudidos.
+  const { data: usuarioAcud } = await supabase
+    .from("Usuarios")
+    .select("id, nombres, apellidos, numero_de_telefono")
+    .or(`numero_de_telefono.eq.${phone},numero_de_telefono.eq.${phoneLocal}`)
+    .maybeSingle();
 
-  const porEstudiante = new Map<number, { row: any; slot: 1 | 2 | 3 }>();
-  for (const row of r1.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 1 });
-  for (const row of r2.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 2 });
-  for (const row of r3.data || []) if (!porEstudiante.has(row.id)) porEstudiante.set(row.id, { row, slot: 3 });
+  if (usuarioAcud) {
+    const { data: acudRow } = await supabase
+      .from("Acudientes")
+      .select("id, acudido1_id, acudido2_id, acudido3_id, acudido4_id")
+      .eq("id", usuarioAcud.id)
+      .maybeSingle();
 
-  const matches = Array.from(porEstudiante.values());
+    if (acudRow) {
+      const hijoIds = [acudRow.acudido1_id, acudRow.acudido2_id, acudRow.acudido3_id, acudRow.acudido4_id]
+        .filter((x: any) => x != null);
 
-  if (matches.length > 0) {
-    const first = matches[0];
-    const joinName = (n: string | null, a: string | null) =>
-      [n, a].filter((x) => x && String(x).trim()).map((x) => String(x).trim()).join(" ");
-    const nombreAcudiente =
-      first.slot === 1 ? joinName(first.row.acudiente1_nombres, first.row.acudiente1_apellidos) :
-      first.slot === 2 ? joinName(first.row.acudiente2_nombres, first.row.acudiente2_apellidos) :
-                         joinName(first.row.acudiente3_nombres, first.row.acudiente3_apellidos);
-    const estudiantes = matches.map(m => m.row);
-    const gradoOrden: Record<string, number> = {
-      "Prejardín": 0, "Pre-Jardín": 1, "Jardín": 2, "Transición": 3,
-      "Primero": 4, "Segundo": 5, "Tercero": 6, "Cuarto": 7, "Quinto": 8,
-      "Sexto": 9, "Séptimo": 10, "Octavo": 11, "Noveno": 12,
-      "Décimo": 13, "Undécimo": 14,
-    };
-    const hijos = estudiantes.map((e: any) => ({
-      id: String(e.id),
-      nombre: e.nombres,
-      apellidos: e.apellidos,
-      nivel: e.nivel,
-      grado: e.grado,
-      salon: e.salon,
-    })).sort((a: any, b: any) => {
-      const ga = gradoOrden[a.grado] ?? 99;
-      const gb = gradoOrden[b.grado] ?? 99;
-      if (ga !== gb) return ga - gb;
-      return (a.salon || "").localeCompare(b.salon || "");
-    });
+      if (hijoIds.length > 0) {
+        const { data: estsData } = await supabase
+          .from("Estudiantes")
+          .select("id, nombres, apellidos, nivel, grado, salon")
+          .in("id", hijoIds);
 
-    return NextResponse.json({
-      yaRegistrado: false,
-      esPadre: true,
-      nombreAcudiente,
-      estudiantes: hijos,
-    });
+        const gradoOrden: Record<string, number> = {
+          "Prejardín": 0, "Pre-Jardín": 1, "Jardín": 2, "Transición": 3,
+          "Primero": 4, "Segundo": 5, "Tercero": 6, "Cuarto": 7, "Quinto": 8,
+          "Sexto": 9, "Séptimo": 10, "Octavo": 11, "Noveno": 12,
+          "Décimo": 13, "Undécimo": 14,
+        };
+        const hijos = (estsData || []).map((e: any) => ({
+          id: String(e.id),
+          nombre: e.nombres,
+          apellidos: e.apellidos,
+          nivel: e.nivel,
+          grado: e.grado,
+          salon: e.salon,
+        })).sort((a: any, b: any) => {
+          const ga = gradoOrden[a.grado] ?? 99;
+          const gb = gradoOrden[b.grado] ?? 99;
+          if (ga !== gb) return ga - gb;
+          return (a.salon || "").localeCompare(b.salon || "");
+        });
+
+        const nombreAcudiente = `${usuarioAcud.nombres || ""} ${usuarioAcud.apellidos || ""}`.trim();
+
+        return NextResponse.json({
+          yaRegistrado: false,
+          esPadre: true,
+          nombreAcudiente,
+          estudiantes: hijos,
+        });
+      }
+    }
   }
 
   // 3. No es acudiente, asume estudiante
